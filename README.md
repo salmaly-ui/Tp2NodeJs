@@ -1,6 +1,6 @@
 
 
-https://github.com/user-attachments/assets/3e6ca746-4a4a-4433-8770-a4a77c66bb4e
+
 
 # 🌦️ Météo Realtime — Dashboard WebSocket
 
@@ -80,6 +80,13 @@ file:///C:/chemin/vers/meteo-realtime/index_tab.html
 
 ---
 ## Demonstration video
+
+
+
+
+https://github.com/user-attachments/assets/01f87435-0786-475b-a79c-32aaa26b8a0f
+
+
 
 ##  Fonctionnement
 
