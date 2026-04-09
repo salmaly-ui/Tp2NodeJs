@@ -1,3 +1,7 @@
+
+
+https://github.com/user-attachments/assets/3e6ca746-4a4a-4433-8770-a4a77c66bb4e
+
 # 🌦️ Météo Realtime — Dashboard WebSocket
 
 Petite application temps réel affichant des données météo via WebSocket + Chart.js.
