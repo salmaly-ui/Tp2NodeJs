@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard météo</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 20px;
+      font-family: Verdana, sans-serif;
+      background-color: #f9f9f9;
+    }
+
+    .container {
+      display: flex;
+      gap: 20px;
+      align-items: flex-start;
+      flex-wrap: wrap;
+    }
+
+    .table-container {
+      flex: 1;
+      min-width: 320px;
+    }
+
+    .charts-container {
+      flex: 2;
+      min-width: 400px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+      border: 1px solid #ddd;
+    }
+
+    th, td {
+      border-bottom: 1px solid #ddd;
+      padding: 10px 15px;
+      text-align: left;
+      height: 35px;
+    }
+
+    th {
+      color: #555;
+      background-color: #f2f2f2;
+    }
+
+    .chart-box {
+      background: white;
+      border: 1px solid #ddd;
+      padding: 15px;
+      margin-bottom: 20px;
+      height: 300px;
+    }
+
+    canvas {
+      width: 100% !important;
+      height: 100% !important;
+    }
+
+    #status {
+      margin-top: 10px;
+      font-size: 14px;
+      color: #444;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div class="table-container">
+      <table id="myTable">
+        <thead>
+          <tr>
+            <th>Mois</th>
+            <th>Max./Min. (°C)</th>
+            <th>Pluie</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <div id="status">Connexion en cours ,veuillez passionter ...</div>
+    </div>
+
+    <div class="charts-container">
+      <div class="chart-box">
+        <canvas id="myChart"></canvas>
+      </div>
+      <div class="chart-box">
+        <canvas id="myChart1"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
+  <script>
+    const mois_tab = [];
+    const max_tab = [];
+    const min_tab = [];
+    const pluie_tab = [];
+
+    const ctxTemp = document.getElementById("myChart").getContext("2d");
+    const chartTemp = new Chart(ctxTemp, {
+      type: "line",
+      data: {
+        labels: mois_tab,
+        datasets: [
+          {
+            label: "Max.",
+            data: max_tab,
+            fill: false,
+            lineTension: 0.3,
+            borderColor: "#671209"
+          },
+          {
+            label: "Min.",
+            data: min_tab,
+            fill: false,
+            lineTension: 0.3,
+            borderColor: "#e82916"
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          yAxes: [{
+            ticks: {
+              beginAtZero: true
+            }
+          }]
+        }
+      }
+    });
+
+    const ctxPluie = document.getElementById("myChart1").getContext("2d");
+    const chartPluie = new Chart(ctxPluie, {
+      type: "bar",
+      data: {
+        labels: mois_tab,
+        datasets: [
+          {
+            label: "Nombre de jours de pluie",
+            data: pluie_tab,
+            borderWidth: 1
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          yAxes: [{
+            ticks: {
+              beginAtZero: true
+            }
+          }]
+        }
+      }
+    });
+
+    const status = document.getElementById("status");
+    const ws = new WebSocket("ws://localhost:5002");
+    ws.onopen = function () {
+      status.textContent = "WebSocket connecté.";
+    };
+
+    ws.onmessage = function (evt) {
+      try {
+        const tab = JSON.parse(evt.data);
+
+        mois_tab.push(tab.mois);
+        max_tab.push(Number(tab.tmax));
+        min_tab.push(Number(tab.tmin));
+        pluie_tab.push(Number(tab.pluie));
+
+        const row = `
+          <tr>
+            <td>${tab.mois}</td>
+            <td>${tab.tmax}° / ${tab.tmin}°</td>
+            <td>${tab.pluie} jours</td>
+          </tr>
+        `;
+
+        document.querySelector("#myTable tbody").insertAdjacentHTML("beforeend", row);
+
+        chartTemp.update();
+        chartPluie.update();
+      } catch (error) {
+        console.error("Erreur lors du traitement du message :", error);
+        status.textContent = "Erreur de traitement des données reçues.";
+      }
+    };
+
+    ws.onerror = function (error) {
+      console.error("Erreur WebSocket :", error);
+      status.textContent = "Erreur de connexion WebSocket.";
+    };
+
+    ws.onclose = function () {
+      status.textContent = "Connexion WebSocket fermée.";
+    };
+  </script>
+</body>
+</html>
